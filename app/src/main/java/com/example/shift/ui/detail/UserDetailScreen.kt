@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.shift.User
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,30 +37,20 @@ fun UserDetailScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            AsyncImage(
+                model = user.picture.large,
+                contentDescription = "Фото пользователя",
+                modifier = Modifier.size(120.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = user.name.getFullName(),
+                text = user.name.first + " " + user.name.last,
                 style = MaterialTheme.typography.headlineMedium
             )
-            
             Spacer(modifier = Modifier.height(16.dp))
-            
             Text(
                 text = user.email,
                 style = MaterialTheme.typography.bodyLarge
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Text(
-                text = user.phone,
-                style = MaterialTheme.typography.bodyLarge
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Text(
-                text = user.location.getFullAddress(),
-                style = MaterialTheme.typography.bodyMedium
             )
         }
     }

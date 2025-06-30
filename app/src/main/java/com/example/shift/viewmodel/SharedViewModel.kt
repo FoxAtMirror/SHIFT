@@ -21,34 +21,23 @@ class SharedViewModel(
     val selectedUser: StateFlow<User?> = _selectedUser.asStateFlow()
     
     init {
-        loadUsers()
+        fetchUsers()
     }
     
-    fun loadUsers() {
-        viewModelScope.launch {
-            repository.getUsers().collect { resource ->
-                _usersState.value = resource
-            }
-        }
-    }
-    
-    fun refreshUsers() {
+    fun fetchUsers(count: Int = 10) {
         viewModelScope.launch {
             _usersState.value = Resource.Loading()
-            val result = repository.refreshUsers()
+            val result = repository.fetchUsers(count)
             _usersState.value = result
         }
     }
     
-    fun selectUser(user: User) {
-        _selectedUser.value = user
+    fun refreshUsers() {
+        fetchUsers()
     }
     
-    fun selectUserByEmail(email: String) {
-        viewModelScope.launch {
-            val user = repository.getUserByEmail(email)
-            _selectedUser.value = user
-        }
+    fun selectUser(user: User) {
+        _selectedUser.value = user
     }
     
     fun clearSelectedUser() {

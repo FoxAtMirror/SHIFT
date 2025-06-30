@@ -5,20 +5,19 @@ data class UserResponse(
 )
 
 data class User(
-    val email: String,
     val name: Name,
-    val phone: String,
-    val location: Location,
+    val email: String,
     val picture: Picture
 )
 
 data class Name(
-    val title: String, 
-    val first: String, 
+    val first: String,
     val last: String
-) {
-    fun getFullName(): String = "$first $last"
-}
+)
+
+data class Picture(
+    val large: String
+)
 
 data class Location(
     val street: Street, 
@@ -32,10 +31,4 @@ data class Location(
 data class Street(
     val number: Int, 
     val name: String
-)
-
-data class Picture(
-    val large: String, 
-    val medium: String, 
-    val thumbnail: String
 )

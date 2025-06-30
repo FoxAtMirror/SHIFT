@@ -1,3 +1,5 @@
+// Этот файл больше не используется. Старые мок-данные закомментированы для предотвращения ошибок компиляции.
+/*
 package com.example.shift.data
 
 import com.example.shift.Location
@@ -137,4 +139,5 @@ object MockData {
             )
         )
     )
-} 
+}
+*/ 

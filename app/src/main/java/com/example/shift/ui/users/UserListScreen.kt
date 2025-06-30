@@ -97,31 +97,22 @@ fun UserCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .padding(end = 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("👤")
-            }
-            
+            AsyncImage(
+                model = user.picture.large,
+                contentDescription = "Фото пользователя",
+                modifier = Modifier.size(60.dp).padding(end = 16.dp)
+            )
             Column(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = user.name.getFullName(),
+                    text = user.name.first + " " + user.name.last,
                     style = MaterialTheme.typography.titleMedium
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = user.location.getFullAddress(),
+                    text = user.email,
                     style = MaterialTheme.typography.bodyMedium
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = user.phone,
-                    style = MaterialTheme.typography.bodySmall
                 )
             }
         }
