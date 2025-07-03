@@ -11,7 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.shift.User
+import com.example.shift.UserEntity
 import com.example.shift.utils.Resource
 import com.example.shift.viewmodel.SharedViewModel
 import androidx.compose.material.icons.Icons
@@ -21,11 +21,10 @@ import coil.compose.AsyncImage
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserListScreen(
-    onUserClick: (User) -> Unit,
+    onUserClick: (UserEntity) -> Unit,
     sharedViewModel: SharedViewModel
 ) {
     val usersState by sharedViewModel.usersState.collectAsState()
-    
     Scaffold(
         topBar = {
             TopAppBar(
@@ -38,7 +37,7 @@ fun UserListScreen(
             )
         }
     ) { padding ->
-        when (val state = usersState) {
+        when (usersState) {
             is Resource.Loading -> {
                 Box(
                     modifier = Modifier
@@ -50,18 +49,30 @@ fun UserListScreen(
                 }
             }
             is Resource.Success -> {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(state.data ?: emptyList()) { user ->
-                        UserCard(
-                            user = user,
-                            onClick = { onUserClick(user) }
-                        )
+                val users = (usersState as Resource.Success).data ?: emptyList()
+                if (users.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(padding),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Нет данных")
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(padding),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(users) { user ->
+                            UserCard(
+                                user = user,
+                                onClick = { onUserClick(user) }
+                            )
+                        }
                     }
                 }
             }
@@ -72,7 +83,7 @@ fun UserListScreen(
                         .padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Ошибка: ${state.message}")
+                    Text((usersState as Resource.Error).message ?: "Произошла ошибка")
                 }
             }
         }
@@ -82,7 +93,7 @@ fun UserListScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserCard(
-    user: User,
+    user: UserEntity,
     onClick: () -> Unit
 ) {
     Card(
@@ -98,7 +109,7 @@ fun UserCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = user.picture.large,
+                model = user.photoUrl,
                 contentDescription = "Фото пользователя",
                 modifier = Modifier.size(60.dp).padding(end = 16.dp)
             )
@@ -106,13 +117,23 @@ fun UserCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = user.name.first + " " + user.name.last,
+                    text = user.firstName + " " + user.lastName,
                     style = MaterialTheme.typography.titleMedium
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = user.email,
                     style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = user.phone,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = user.address,
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
         }

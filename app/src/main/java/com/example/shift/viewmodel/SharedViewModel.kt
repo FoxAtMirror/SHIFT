@@ -2,7 +2,7 @@ package com.example.shift.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.shift.User
+import com.example.shift.UserEntity
 import com.example.shift.data.repository.UserRepository
 import com.example.shift.utils.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,14 +14,27 @@ class SharedViewModel(
     private val repository: UserRepository
 ) : ViewModel() {
     
-    private val _usersState = MutableStateFlow<Resource<List<User>>>(Resource.Loading())
-    val usersState: StateFlow<Resource<List<User>>> = _usersState.asStateFlow()
+    private val _usersState = MutableStateFlow<Resource<List<UserEntity>>>(Resource.Loading())
+    val usersState: StateFlow<Resource<List<UserEntity>>> = _usersState.asStateFlow()
     
-    private val _selectedUser = MutableStateFlow<User?>(null)
-    val selectedUser: StateFlow<User?> = _selectedUser.asStateFlow()
+    private val _selectedUser = MutableStateFlow<UserEntity?>(null)
+    val selectedUser: StateFlow<UserEntity?> = _selectedUser.asStateFlow()
     
     init {
-        fetchUsers()
+        loadUsersFromDb()
+    }
+    
+    private fun loadUsersFromDb() {
+        viewModelScope.launch {
+            _usersState.value = Resource.Loading()
+            val result = repository.loadUsersFromDb()
+            _usersState.value = result
+            
+            // Если в базе нет данных, загружаем из сети
+            if (result is Resource.Loading) {
+                fetchUsers()
+            }
+        }
     }
     
     fun fetchUsers(count: Int = 10) {
@@ -33,10 +46,14 @@ class SharedViewModel(
     }
     
     fun refreshUsers() {
-        fetchUsers()
+        viewModelScope.launch {
+            _usersState.value = Resource.Loading()
+            val result = repository.refreshUsers()
+            _usersState.value = result
+        }
     }
     
-    fun selectUser(user: User) {
+    fun selectUser(user: UserEntity) {
         _selectedUser.value = user
     }
     

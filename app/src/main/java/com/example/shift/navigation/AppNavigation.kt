@@ -13,6 +13,8 @@ import com.example.shift.ui.detail.UserDetailScreen
 import com.example.shift.ui.users.UserListScreen
 import com.example.shift.viewmodel.SharedViewModel
 import com.example.shift.viewmodel.SharedViewModelFactory
+import androidx.compose.ui.platform.LocalContext
+import com.example.shift.UserEntity
 
 sealed class Screen(val route: String) {
     object UserList : Screen("user_list")
@@ -23,8 +25,9 @@ sealed class Screen(val route: String) {
 fun AppNavigation(
     navController: NavHostController = rememberNavController()
 ) {
+    val context = LocalContext.current
     val sharedViewModel: SharedViewModel = viewModel(
-        factory = SharedViewModelFactory(AppModule.provideUserRepository())
+        factory = SharedViewModelFactory(AppModule.provideUserRepository(context))
     )
     
     NavHost(

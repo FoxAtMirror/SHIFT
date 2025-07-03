@@ -8,6 +8,10 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.example.shift.UserEntity
+import com.example.shift.toEntity
+import com.example.shift.toUser
+import com.example.shift.data.db.UserDao
 
 // Retrofit API
 interface RandomUserApi {
@@ -23,13 +27,62 @@ object ApiService {
         .create(RandomUserApi::class.java)
 }
 
-class UserRepository {
-    suspend fun fetchUsers(count: Int = 10): Resource<List<User>> = withContext(Dispatchers.IO) {
-        return@withContext try {
-            val response = ApiService.api.getUsers(count)
-            Resource.Success(response.results)
+class UserRepository(
+    private val api: RandomUserApi,
+    private val userDao: UserDao
+) {
+    suspend fun fetchUsersFromApi(count: Int = 10): List<User> {
+        return api.getUsers(count).results
+    }
+
+    suspend fun saveUsersToDb(users: List<UserEntity>) {
+        userDao.clearAll()
+        userDao.insertAll(users)
+    }
+
+    suspend fun getUsersFromDb(): List<UserEntity> {
+        return userDao.getAll()
+    }
+
+    suspend fun syncUsers(count: Int = 10) {
+        val usersFromApi = fetchUsersFromApi(count)
+        val entities = usersFromApi.map { it.toEntity() }
+        saveUsersToDb(entities)
+    }
+    
+    suspend fun fetchUsers(count: Int = 10): Resource<List<UserEntity>> {
+        return try {
+            val users = fetchUsersFromApi(count)
+            val entities = users.map { it.toEntity() }
+            saveUsersToDb(entities)
+            Resource.Success(entities)
         } catch (e: Exception) {
-            Resource.Error("Ошибка загрузки данных: ${e.message}")
+            Resource.Error(e.message ?: "Произошла ошибка при загрузке пользователей")
+        }
+    }
+    
+    suspend fun loadUsersFromDb(): Resource<List<UserEntity>> {
+        return try {
+            val users = getUsersFromDb()
+            if (users.isNotEmpty()) {
+                Resource.Success(users)
+            } else {
+                Resource.Loading()
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Ошибка загрузки из базы данных")
+        }
+    }
+    
+    suspend fun refreshUsers(count: Int = 10): Resource<List<UserEntity>> {
+        return try {
+            val users = fetchUsersFromApi(count)
+            val entities = users.map { it.toEntity() }
+            saveUsersToDb(entities)
+            Resource.Success(entities)
+        } catch (e: Exception) {
+            // Если сеть недоступна, загружаем из базы
+            loadUsersFromDb()
         }
     }
 } 
